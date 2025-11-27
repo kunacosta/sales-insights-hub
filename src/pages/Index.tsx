@@ -8,6 +8,7 @@ import BrandAnalytics from '@/components/BrandAnalytics';
 import BrandProfitMetrics from '@/components/BrandProfitMetrics';
 import SalesmanLeaderboard from '@/components/SalesmanLeaderboard';
 import DateRangeBadge from '@/components/DateRangeBadge';
+import DataQualityDialog from '@/components/DataQualityDialog';
 import { parseCSV, processTransaction, detectDateRange, parseDateString } from '@/utils/csvParser';
 import {
   calculateKPIs,
@@ -17,12 +18,17 @@ import {
   getModelPerformance,
   getSalesmanPerformance,
 } from '@/utils/analytics';
+import { detectBrandInconsistencies, applyBrandFixes, BrandInconsistency } from '@/utils/dataQuality';
 import { ProcessedTransaction, FilterState, DateRange } from '@/types/sales';
 import { BarChart3 } from 'lucide-react';
 
 const Index = () => {
   const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
+  const [pendingTransactions, setPendingTransactions] = useState<ProcessedTransaction[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
+  const [pendingDateRange, setPendingDateRange] = useState<DateRange | null>(null);
+  const [inconsistencies, setInconsistencies] = useState<BrandInconsistency[]>([]);
+  const [showQualityDialog, setShowQualityDialog] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     outlet: 'all',
     brand: 'all',
@@ -39,13 +45,68 @@ const Index = () => {
       const rawData = await parseCSV(file);
       const processedData = rawData.map(processTransaction);
       const detectedDateRange = detectDateRange(rawData);
-      setTransactions(processedData);
-      setDateRange(detectedDateRange);
-      toast.success(`Successfully loaded ${processedData.length} transactions`);
+      
+      // Detect brand inconsistencies
+      const detected = detectBrandInconsistencies(processedData);
+      
+      if (detected.length > 0) {
+        // Store pending data and show dialog
+        setPendingTransactions(processedData);
+        setPendingDateRange(detectedDateRange);
+        setInconsistencies(detected);
+        setShowQualityDialog(true);
+        toast.dismiss();
+        toast.info(`Found ${detected.length} brand name inconsistencies`);
+      } else {
+        // No inconsistencies, proceed directly
+        setTransactions(processedData);
+        setDateRange(detectedDateRange);
+        toast.dismiss();
+        toast.success(`Successfully loaded ${processedData.length} transactions`);
+      }
     } catch (error) {
+      toast.dismiss();
       toast.error('Failed to parse CSV file. Please check the format.');
       console.error(error);
     }
+  };
+
+  const handleFixInconsistencies = (selectedIds: string[]) => {
+    // Build a mapping of old names to new names
+    const fixes = new Map<string, string>();
+    inconsistencies
+      .filter(i => selectedIds.includes(i.id))
+      .forEach(i => {
+        i.variants.forEach(v => {
+          if (v.name !== i.suggestedName) {
+            fixes.set(v.name, i.suggestedName);
+          }
+        });
+      });
+
+    // Apply fixes to transactions
+    const fixedTransactions = applyBrandFixes(pendingTransactions, fixes);
+    
+    setTransactions(fixedTransactions);
+    setDateRange(pendingDateRange);
+    setShowQualityDialog(false);
+    setPendingTransactions([]);
+    setPendingDateRange(null);
+    setInconsistencies([]);
+    
+    const fixedCount = fixes.size;
+    toast.success(`Fixed ${fixedCount} brand names. Loaded ${fixedTransactions.length} transactions`);
+  };
+
+  const handleIgnoreAll = () => {
+    // Use original data without fixes
+    setTransactions(pendingTransactions);
+    setDateRange(pendingDateRange);
+    setShowQualityDialog(false);
+    setPendingTransactions([]);
+    setPendingDateRange(null);
+    setInconsistencies([]);
+    toast.success(`Loaded ${pendingTransactions.length} transactions`);
   };
 
   // Filter data
@@ -138,6 +199,14 @@ const Index = () => {
   }
 
   return (
+    <>
+      <DataQualityDialog
+        open={showQualityDialog}
+        onOpenChange={setShowQualityDialog}
+        inconsistencies={inconsistencies}
+        onFix={handleFixInconsistencies}
+        onIgnoreAll={handleIgnoreAll}
+      />
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b border-border p-4 sm:p-6 mb-6">
         <div className="max-w-[1600px] mx-auto space-y-4">
@@ -196,6 +265,7 @@ const Index = () => {
         )}
       </main>
     </div>
+    </>
   );
 };
 
