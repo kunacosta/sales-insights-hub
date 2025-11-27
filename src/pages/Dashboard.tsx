@@ -183,28 +183,37 @@ const Dashboard = () => {
 
   if (transactions.length === 0) {
     return (
-      <div className="min-h-screen bg-background p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-4">
-            <Link to="/">
-              <Button variant="ghost" size="sm">
-                <Home className="w-4 h-4 mr-2" />
-                Back to Home
-              </Button>
-            </Link>
-          </div>
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <BarChart3 className="w-12 h-12 text-primary" />
+      <>
+        <DataQualityDialog
+          open={showQualityDialog}
+          onOpenChange={setShowQualityDialog}
+          inconsistencies={inconsistencies}
+          onFix={handleFixInconsistencies}
+          onIgnoreAll={handleIgnoreAll}
+        />
+        <div className="min-h-screen bg-background p-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-4">
+              <Link to="/">
+                <Button variant="ghost" size="sm">
+                  <Home className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Button>
+              </Link>
             </div>
-            <h1 className="text-4xl font-bold mb-2">Counter Sales Analytics</h1>
-            <p className="text-muted-foreground">
-              Upload your CSV file to start analyzing your sales data
-            </p>
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center mb-4">
+                <BarChart3 className="w-12 h-12 text-primary" />
+              </div>
+              <h1 className="text-4xl font-bold mb-2">Counter Sales Analytics</h1>
+              <p className="text-muted-foreground">
+                Upload your CSV file to start analyzing your sales data
+              </p>
+            </div>
+            <CSVUploader onFileUpload={handleFileUpload} />
           </div>
-          <CSVUploader onFileUpload={handleFileUpload} />
         </div>
-      </div>
+      </>
     );
   }
 
