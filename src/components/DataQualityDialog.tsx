@@ -129,7 +129,32 @@ const DataQualityDialog = ({
           </TabsList>
 
           <TabsContent value="detected" className="flex-1 min-h-0 mt-4">
-            <ScrollArea className="h-[40vh]">
+            {inconsistencies.length > 0 && (
+              <div className="flex items-center gap-2 mb-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedIds(new Set(inconsistencies.map(i => i.id)))}
+                  disabled={selectedIds.size === inconsistencies.length}
+                >
+                  <Check className="w-3 h-3 mr-1" />
+                  Select All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedIds(new Set())}
+                  disabled={selectedIds.size === 0}
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  Select None
+                </Button>
+                <span className="text-xs text-muted-foreground ml-auto">
+                  {selectedIds.size} of {inconsistencies.length} selected
+                </span>
+              </div>
+            )}
+            <ScrollArea className="h-[36vh]">
               <div className="space-y-4 pr-4">
                 {inconsistencies.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
