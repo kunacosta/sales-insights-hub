@@ -8,7 +8,7 @@ import BrandAnalytics from '@/components/BrandAnalytics';
 import BrandProfitMetrics from '@/components/BrandProfitMetrics';
 import SalesmanLeaderboard from '@/components/SalesmanLeaderboard';
 import DateRangeBadge from '@/components/DateRangeBadge';
-import { parseCSV, processTransaction, detectDateRange } from '@/utils/csvParser';
+import { parseCSV, processTransaction, detectDateRange, parseDateString } from '@/utils/csvParser';
 import {
   calculateKPIs,
   getMonthlyPerformance,
@@ -57,9 +57,22 @@ const Index = () => {
       
       // Date filtering
       if (filters.dateFrom || filters.dateTo) {
-        const transactionDate = new Date(t.trx_date);
-        if (filters.dateFrom && transactionDate < filters.dateFrom) return false;
-        if (filters.dateTo && transactionDate > filters.dateTo) return false;
+        try {
+          const transactionDate = parseDateString(t.trx_date);
+          if (filters.dateFrom) {
+            const fromDate = new Date(filters.dateFrom);
+            fromDate.setHours(0, 0, 0, 0);
+            if (transactionDate < fromDate) return false;
+          }
+          if (filters.dateTo) {
+            const toDate = new Date(filters.dateTo);
+            toDate.setHours(23, 59, 59, 999);
+            if (transactionDate > toDate) return false;
+          }
+        } catch (e) {
+          // Skip transactions with invalid dates
+          return false;
+        }
       }
       
       return true;
