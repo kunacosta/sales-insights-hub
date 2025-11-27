@@ -28,6 +28,7 @@ interface DataQualityDialogProps {
   onOpenChange: (open: boolean) => void;
   inconsistencies: BrandInconsistency[];
   availableBrands: string[];
+  brandCounts: Map<string, number>;
   onFix: (selectedIds: string[], customMappings: CustomMapping[]) => void;
   onIgnoreAll: () => void;
 }
@@ -47,6 +48,7 @@ const DataQualityDialog = ({
   onOpenChange,
   inconsistencies,
   availableBrands,
+  brandCounts,
   onFix,
   onIgnoreAll,
 }: DataQualityDialogProps) => {
@@ -56,6 +58,12 @@ const DataQualityDialog = ({
   const [customMappings, setCustomMappings] = useState<CustomMapping[]>([]);
   const [newFromBrand, setNewFromBrand] = useState('');
   const [newToBrand, setNewToBrand] = useState('');
+  const [brandSearch, setBrandSearch] = useState('');
+
+  // Filter brands based on search
+  const filteredBrands = availableBrands.filter(brand => 
+    brand.toLowerCase().includes(brandSearch.toLowerCase())
+  ).sort((a, b) => (brandCounts.get(b) || 0) - (brandCounts.get(a) || 0));
 
   // Reset selections when inconsistencies change
   useEffect(() => {
@@ -240,7 +248,7 @@ const DataQualityDialog = ({
                     />
                     <datalist id="brand-suggestions-from">
                       {availableBrands.map(brand => (
-                        <option key={brand} value={brand} />
+                        <option key={brand} value={`${brand} (${brandCounts.get(brand) || 0})`} />
                       ))}
                     </datalist>
                   </div>
@@ -254,7 +262,7 @@ const DataQualityDialog = ({
                     />
                     <datalist id="brand-suggestions-to">
                       {availableBrands.map(brand => (
-                        <option key={brand} value={brand} />
+                        <option key={brand} value={`${brand} (${brandCounts.get(brand) || 0})`} />
                       ))}
                     </datalist>
                   </div>
@@ -266,22 +274,57 @@ const DataQualityDialog = ({
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Type to search existing brands or enter new names
+              </div>
+
+              {/* Brand list with counts */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-medium">All Brands</Label>
+                  <Input
+                    placeholder="Search brands..."
+                    value={brandSearch}
+                    onChange={(e) => setBrandSearch(e.target.value)}
+                    className="flex-1 h-8"
+                  />
+                </div>
+                <ScrollArea className="h-[22vh] border rounded-lg">
+                  <div className="p-2 space-y-1">
+                    {filteredBrands.map(brand => (
+                      <div 
+                        key={brand} 
+                        className="flex items-center justify-between px-3 py-2 rounded hover:bg-muted/50 cursor-pointer text-sm"
+                        onClick={() => {
+                          if (!newFromBrand) {
+                            setNewFromBrand(brand);
+                          } else if (!newToBrand) {
+                            setNewToBrand(brand);
+                          }
+                        }}
+                      >
+                        <span className="font-mono truncate">{brand}</span>
+                        <Badge variant="secondary" className="ml-2 flex-shrink-0">
+                          {brandCounts.get(brand) || 0}
+                        </Badge>
+                      </div>
+                    ))}
+                    {filteredBrands.length === 0 && (
+                      <div className="text-center py-4 text-muted-foreground text-sm">
+                        No brands found
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+                <p className="text-xs text-muted-foreground">
+                  Click a brand to add it to the mapping fields above
                 </p>
               </div>
 
               {/* Custom mappings list */}
-              <ScrollArea className="h-[28vh]">
-                <div className="space-y-2 pr-4">
-                  {customMappings.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No custom mappings added yet.
-                      <br />
-                      Add mappings above for brands not detected automatically.
-                    </div>
-                  ) : (
-                    customMappings.map((mapping) => (
+              {customMappings.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Pending Mappings</Label>
+                  <div className="space-y-2">
+                    {customMappings.map((mapping) => (
                       <div
                         key={mapping.id}
                         className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
@@ -294,7 +337,7 @@ const DataQualityDialog = ({
                           {mapping.toBrand}
                         </code>
                         <Button
-                          size="sm"
+                           size="sm"
                           variant="ghost"
                           onClick={() => removeCustomMapping(mapping.id)}
                           className="text-destructive hover:text-destructive"
@@ -302,10 +345,10 @@ const DataQualityDialog = ({
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
-                    ))
-                  )}
+                    ))}
+                  </div>
                 </div>
-              </ScrollArea>
+              )}
             </div>
           </TabsContent>
         </Tabs>
