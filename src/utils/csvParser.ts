@@ -30,7 +30,21 @@ export const parseCSV = (file: File): Promise<SalesTransaction[]> => {
 
 const parseDateString = (dateStr: string): Date => {
   // Format: dd/mm/yyyy
-  const [day, month, year] = dateStr.split('/').map(Number);
+  if (!dateStr || typeof dateStr !== 'string') {
+    throw new Error('Invalid date string');
+  }
+  
+  const parts = dateStr.trim().split('/');
+  if (parts.length !== 3) {
+    throw new Error(`Invalid date format: ${dateStr}`);
+  }
+  
+  const [day, month, year] = parts.map(Number);
+  
+  if (isNaN(day) || isNaN(month) || isNaN(year)) {
+    throw new Error(`Invalid date values: ${dateStr}`);
+  }
+  
   return new Date(year, month - 1, day);
 };
 
@@ -56,33 +70,71 @@ export const detectDateRange = (transactions: SalesTransaction[]) => {
     };
   }
 
-  const dates = transactions
-    .map(t => parseDateString(t.trx_date))
-    .sort((a, b) => a.getTime() - b.getTime());
-  
-  const startDate = dates[0];
-  const endDate = dates[dates.length - 1];
-  const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  
-  // Check if it's monthly data (all transactions within same month)
-  const isMonthly = startDate.getMonth() === endDate.getMonth() && 
-                    startDate.getFullYear() === endDate.getFullYear();
-  
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
-  
-  const displayText = isMonthly
-    ? `${startDate.toLocaleDateString('en-MY', { month: 'long', year: 'numeric' })}`
-    : `${formatDate(startDate)} - ${formatDate(endDate)}`;
-  
-  return {
-    startDate: formatDate(startDate),
-    endDate: formatDate(endDate),
-    totalDays: totalDays + 1,
-    isMonthly,
-    displayText,
-  };
+  try {
+    // Filter out invalid dates and parse valid ones
+    const dates = transactions
+      .filter(t => t.trx_date && t.trx_date.trim() !== '')
+      .map(t => {
+        try {
+          const date = parseDateString(t.trx_date);
+          // Check if date is valid
+          if (isNaN(date.getTime())) {
+            console.warn(`Invalid date: ${t.trx_date}`);
+            return null;
+          }
+          return date;
+        } catch (e) {
+          console.warn(`Error parsing date: ${t.trx_date}`, e);
+          return null;
+        }
+      })
+      .filter((d): d is Date => d !== null)
+      .sort((a, b) => a.getTime() - b.getTime());
+    
+    if (dates.length === 0) {
+      console.error('No valid dates found in transactions');
+      return {
+        startDate: '',
+        endDate: '',
+        totalDays: 0,
+        isMonthly: false,
+        displayText: 'Invalid dates in data',
+      };
+    }
+    
+    const startDate = dates[0];
+    const endDate = dates[dates.length - 1];
+    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Check if it's monthly data (all transactions within same month)
+    const isMonthly = startDate.getMonth() === endDate.getMonth() && 
+                      startDate.getFullYear() === endDate.getFullYear();
+    
+    const formatDate = (date: Date) => {
+      return date.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
+    
+    const displayText = isMonthly
+      ? `${startDate.toLocaleDateString('en-MY', { month: 'long', year: 'numeric' })}`
+      : `${formatDate(startDate)} - ${formatDate(endDate)}`;
+    
+    return {
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate),
+      totalDays: totalDays + 1,
+      isMonthly,
+      displayText,
+    };
+  } catch (error) {
+    console.error('Error detecting date range:', error);
+    return {
+      startDate: '',
+      endDate: '',
+      totalDays: 0,
+      isMonthly: false,
+      displayText: 'Error detecting date range',
+    };
+  }
 };
 
 export const processTransaction = (transaction: SalesTransaction): ProcessedTransaction => {
