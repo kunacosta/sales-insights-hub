@@ -10,11 +10,11 @@ interface BrandAnalyticsProps {
 
 const BrandAnalytics = ({ brandData, modelData }: BrandAnalyticsProps) => {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('ms-MY', {
       style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      currency: 'MYR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(value);
   };
 
