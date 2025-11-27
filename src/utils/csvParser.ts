@@ -29,12 +29,15 @@ export const parseCSV = (file: File): Promise<SalesTransaction[]> => {
 };
 
 const parseDateString = (dateStr: string): Date => {
-  // Format: dd/mm/yyyy
+  // Format: dd/mm/yyyy or dd/m/yyyy with optional time (0:00)
   if (!dateStr || typeof dateStr !== 'string') {
     throw new Error('Invalid date string');
   }
   
-  const parts = dateStr.trim().split('/');
+  // Remove time component if present (e.g., "19/1/2025 0:00" -> "19/1/2025")
+  const dateOnly = dateStr.trim().split(' ')[0];
+  
+  const parts = dateOnly.split('/');
   if (parts.length !== 3) {
     throw new Error(`Invalid date format: ${dateStr}`);
   }
@@ -43,6 +46,11 @@ const parseDateString = (dateStr: string): Date => {
   
   if (isNaN(day) || isNaN(month) || isNaN(year)) {
     throw new Error(`Invalid date values: ${dateStr}`);
+  }
+  
+  // Validate ranges
+  if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900) {
+    throw new Error(`Date out of range: ${dateStr}`);
   }
   
   return new Date(year, month - 1, day);
