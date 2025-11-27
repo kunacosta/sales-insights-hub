@@ -28,6 +28,14 @@ export interface KPIMetrics {
   returnRate: number;
 }
 
+export interface DateRange {
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  isMonthly: boolean;
+  displayText: string;
+}
+
 export interface FilterState {
   outlet: string;
   brand: string;

@@ -6,7 +6,8 @@ import FilterBar from '@/components/FilterBar';
 import FinancialTrends from '@/components/FinancialTrends';
 import BrandAnalytics from '@/components/BrandAnalytics';
 import SalesmanLeaderboard from '@/components/SalesmanLeaderboard';
-import { parseCSV, processTransaction } from '@/utils/csvParser';
+import DateRangeBadge from '@/components/DateRangeBadge';
+import { parseCSV, processTransaction, detectDateRange } from '@/utils/csvParser';
 import {
   calculateKPIs,
   getMonthlyPerformance,
@@ -15,11 +16,12 @@ import {
   getModelPerformance,
   getSalesmanPerformance,
 } from '@/utils/analytics';
-import { ProcessedTransaction, FilterState } from '@/types/sales';
+import { ProcessedTransaction, FilterState, DateRange } from '@/types/sales';
 import { BarChart3 } from 'lucide-react';
 
 const Index = () => {
   const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     outlet: 'all',
     brand: 'all',
@@ -31,7 +33,9 @@ const Index = () => {
       toast.loading('Parsing CSV file...');
       const rawData = await parseCSV(file);
       const processedData = rawData.map(processTransaction);
+      const detectedDateRange = detectDateRange(rawData);
       setTransactions(processedData);
+      setDateRange(detectedDateRange);
       toast.success(`Successfully loaded ${processedData.length} transactions`);
     } catch (error) {
       toast.error('Failed to parse CSV file. Please check the format.');
@@ -92,17 +96,18 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-card border-b border-border p-6 mb-6">
-        <div className="max-w-[1600px] mx-auto">
-          <div className="flex items-center justify-between">
+      <header className="bg-card border-b border-border p-4 sm:p-6 mb-6">
+        <div className="max-w-[1600px] mx-auto space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <BarChart3 className="w-8 h-8 text-primary" />
-              <h1 className="text-3xl font-bold">Counter Sales Analytics</h1>
+              <BarChart3 className="w-8 h-8 text-primary flex-shrink-0" />
+              <h1 className="text-2xl sm:text-3xl font-bold">Counter Sales Analytics</h1>
             </div>
             <div className="text-sm text-muted-foreground">
               {filteredTransactions.length} of {transactions.length} transactions
             </div>
           </div>
+          {dateRange && <DateRangeBadge dateRange={dateRange} />}
         </div>
       </header>
 
@@ -114,7 +119,7 @@ const Index = () => {
         salesmen={filterOptions.salesmen}
       />
 
-      <main className="max-w-[1600px] mx-auto px-6 pb-12 space-y-8">
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 pb-12 space-y-8">
         {analytics && (
           <>
             <section>
