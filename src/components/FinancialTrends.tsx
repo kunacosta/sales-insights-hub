@@ -40,7 +40,7 @@ const FinancialTrends = ({ monthlyData, dayOfWeekData }: FinancialTrendsProps) =
         
         <div className="grid grid-cols-1 gap-4">
           {/* Revenue */}
-          <div className="p-5 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02] hover:border-primary/40 cursor-default animate-fade-in">
+          <div className="p-5 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-primary/15">
@@ -53,7 +53,7 @@ const FinancialTrends = ({ monthlyData, dayOfWeekData }: FinancialTrendsProps) =
           </div>
 
           {/* COGS */}
-          <div className="p-5 rounded-xl bg-gradient-to-br from-destructive/5 to-destructive/10 border border-destructive/20 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-destructive/10 hover:scale-[1.02] hover:border-destructive/40 cursor-default animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <div className="p-5 rounded-xl bg-gradient-to-br from-destructive/5 to-destructive/10 border border-destructive/20 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-muted-foreground">Cost of Goods Sold</span>
               <span className="text-xs font-semibold text-destructive/80 bg-destructive/10 px-2 py-1 rounded-full">{formatPercent(cogsPercent)}</span>
@@ -68,7 +68,7 @@ const FinancialTrends = ({ monthlyData, dayOfWeekData }: FinancialTrendsProps) =
           </div>
 
           {/* Profit */}
-          <div className="p-5 rounded-xl bg-gradient-to-br from-profit/5 to-profit/15 border border-profit/25 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-profit/10 hover:scale-[1.02] hover:border-profit/40 cursor-default animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <div className="p-5 rounded-xl bg-gradient-to-br from-profit/5 to-profit/15 border border-profit/25 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-profit/15">
