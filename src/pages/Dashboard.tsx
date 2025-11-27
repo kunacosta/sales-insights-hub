@@ -21,6 +21,7 @@ import {
   getSalesmanPerformance,
 } from '@/utils/analytics';
 import { detectBrandInconsistencies, applyBrandFixes, BrandInconsistency } from '@/utils/dataQuality';
+import { CustomMapping } from '@/components/DataQualityDialog';
 import { ProcessedTransaction, FilterState, DateRange } from '@/types/sales';
 import { BarChart3, Home } from 'lucide-react';
 
@@ -73,9 +74,11 @@ const Dashboard = () => {
     }
   };
 
-  const handleFixInconsistencies = (selectedIds: string[]) => {
+  const handleFixInconsistencies = (selectedIds: string[], customMappings: CustomMapping[]) => {
     // Build a mapping of old names to new names
     const fixes = new Map<string, string>();
+    
+    // Add detected inconsistency fixes
     inconsistencies
       .filter(i => selectedIds.includes(i.id))
       .forEach(i => {
@@ -85,6 +88,11 @@ const Dashboard = () => {
           }
         });
       });
+
+    // Add custom mappings
+    customMappings.forEach(mapping => {
+      fixes.set(mapping.fromBrand, mapping.toBrand);
+    });
 
     // Apply fixes to transactions
     const fixedTransactions = applyBrandFixes(pendingTransactions, fixes);
@@ -181,6 +189,11 @@ const Dashboard = () => {
     };
   }, [filteredTransactions, filters.brandSort, filters.productSort]);
 
+  // Get available brands for custom mapping suggestions
+  const availableBrands = useMemo(() => {
+    return [...new Set(pendingTransactions.map(t => t.inv_desc))].sort();
+  }, [pendingTransactions]);
+
   if (transactions.length === 0) {
     return (
       <>
@@ -188,6 +201,7 @@ const Dashboard = () => {
           open={showQualityDialog}
           onOpenChange={setShowQualityDialog}
           inconsistencies={inconsistencies}
+          availableBrands={availableBrands}
           onFix={handleFixInconsistencies}
           onIgnoreAll={handleIgnoreAll}
         />
@@ -223,6 +237,7 @@ const Dashboard = () => {
         open={showQualityDialog}
         onOpenChange={setShowQualityDialog}
         inconsistencies={inconsistencies}
+        availableBrands={availableBrands}
         onFix={handleFixInconsistencies}
         onIgnoreAll={handleIgnoreAll}
       />
