@@ -5,6 +5,7 @@ import KPICards from '@/components/KPICards';
 import FilterBar from '@/components/FilterBar';
 import FinancialTrends from '@/components/FinancialTrends';
 import BrandAnalytics from '@/components/BrandAnalytics';
+import BrandProfitMetrics from '@/components/BrandProfitMetrics';
 import SalesmanLeaderboard from '@/components/SalesmanLeaderboard';
 import DateRangeBadge from '@/components/DateRangeBadge';
 import { parseCSV, processTransaction, detectDateRange } from '@/utils/csvParser';
@@ -26,6 +27,10 @@ const Index = () => {
     outlet: 'all',
     brand: 'all',
     salesman: 'all',
+    dateFrom: null,
+    dateTo: null,
+    brandSort: 'all',
+    productSort: 'all',
   });
 
   const handleFileUpload = async (file: File) => {
@@ -49,6 +54,14 @@ const Index = () => {
       if (filters.outlet !== 'all' && t.com_unit !== filters.outlet) return false;
       if (filters.brand !== 'all' && t.inv_desc !== filters.brand) return false;
       if (filters.salesman !== 'all' && t.saleman_cd !== filters.salesman) return false;
+      
+      // Date filtering
+      if (filters.dateFrom || filters.dateTo) {
+        const transactionDate = new Date(t.trx_date);
+        if (filters.dateFrom && transactionDate < filters.dateFrom) return false;
+        if (filters.dateTo && transactionDate > filters.dateTo) return false;
+      }
+      
       return true;
     });
   }, [transactions, filters]);
@@ -65,15 +78,32 @@ const Index = () => {
   const analytics = useMemo(() => {
     if (filteredTransactions.length === 0) return null;
 
+    let brandData = getBrandPerformance(filteredTransactions);
+    let modelData = getModelPerformance(filteredTransactions);
+
+    // Apply brand sorting
+    if (filters.brandSort === 'best') {
+      brandData = brandData.slice(0, 10);
+    } else if (filters.brandSort === 'worst') {
+      brandData = brandData.slice(-10).reverse();
+    }
+
+    // Apply product sorting
+    if (filters.productSort === 'best') {
+      modelData = modelData.slice(0, 10);
+    } else if (filters.productSort === 'worst') {
+      modelData = [...modelData].sort((a, b) => a.margin - b.margin).slice(0, 10);
+    }
+
     return {
       kpis: calculateKPIs(filteredTransactions),
       monthlyData: getMonthlyPerformance(filteredTransactions),
       dayOfWeekData: getDayOfWeekPerformance(filteredTransactions),
-      brandData: getBrandPerformance(filteredTransactions),
-      modelData: getModelPerformance(filteredTransactions),
+      brandData,
+      modelData,
       salesmanData: getSalesmanPerformance(filteredTransactions),
     };
-  }, [filteredTransactions]);
+  }, [filteredTransactions, filters.brandSort, filters.productSort]);
 
   if (transactions.length === 0) {
     return (
@@ -138,6 +168,11 @@ const Index = () => {
             <section>
               <h2 className="text-2xl font-semibold mb-4">Product & Brand Intelligence</h2>
               <BrandAnalytics brandData={analytics.brandData} modelData={analytics.modelData} />
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Brand Profitability</h2>
+              <BrandProfitMetrics brandData={analytics.brandData} />
             </section>
 
             <section>

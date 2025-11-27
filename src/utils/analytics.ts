@@ -64,23 +64,26 @@ export const getDayOfWeekPerformance = (transactions: ProcessedTransaction[]): C
 export const getBrandPerformance = (transactions: ProcessedTransaction[]): BrandPerformance[] => {
   const brandData = transactions.reduce((acc, t) => {
     if (!acc[t.inv_desc]) {
-      acc[t.inv_desc] = { revenue: 0, profit: 0, returns: 0, sales: 0 };
+      acc[t.inv_desc] = { revenue: 0, profit: 0, cogs: 0, returns: 0, sales: 0 };
     }
     acc[t.inv_desc].revenue += t.revenue;
     acc[t.inv_desc].profit += t.netProfit;
+    acc[t.inv_desc].cogs += t.cost;
     if (t.line_code === 'R') {
       acc[t.inv_desc].returns += Math.abs(t.quantity);
     } else if (t.line_code === '1') {
       acc[t.inv_desc].sales += t.quantity;
     }
     return acc;
-  }, {} as Record<string, { revenue: number; profit: number; returns: number; sales: number }>);
+  }, {} as Record<string, { revenue: number; profit: number; cogs: number; returns: number; sales: number }>);
   
   return Object.entries(brandData)
     .map(([brand, data]) => ({
       brand,
       revenue: data.revenue,
       profit: data.profit,
+      cogs: data.cogs,
+      profitMargin: data.revenue > 0 ? (data.profit / data.revenue) * 100 : 0,
       returnRate: data.sales > 0 ? (data.returns / data.sales) * 100 : 0,
       salesCount: data.sales,
     }))
