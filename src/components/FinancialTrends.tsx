@@ -27,22 +27,22 @@ const FinancialTrends = ({ monthlyData, dayOfWeekData }: FinancialTrendsProps) =
         <CardContent className="px-2 sm:px-6">
           <div className="w-full overflow-x-auto">
             <div className="min-w-[400px]">
-              <ResponsiveContainer width="100%" height={300}>
-                <ComposedChart data={monthlyData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+              <ResponsiveContainer width="100%" height={350}>
+                <ComposedChart data={monthlyData} margin={{ top: 5, right: 20, left: 10, bottom: 60 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis 
                     dataKey="name" 
                     stroke="hsl(var(--foreground))"
-                    fontSize={12}
+                    fontSize={11}
                     angle={-45}
                     textAnchor="end"
-                    height={80}
+                    height={70}
                   />
                   <YAxis 
                     stroke="hsl(var(--foreground))" 
                     tickFormatter={formatCurrency}
-                    fontSize={12}
-                    width={80}
+                    fontSize={11}
+                    width={90}
                   />
                   <Tooltip
                     formatter={(value: number) => formatCurrency(value)}
