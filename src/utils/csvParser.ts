@@ -28,7 +28,7 @@ export const parseCSV = (file: File): Promise<SalesTransaction[]> => {
   });
 };
 
-const parseDateString = (dateStr: string): Date => {
+export const parseDateString = (dateStr: string): Date => {
   // Format: dd/mm/yyyy or dd/m/yyyy with optional time (0:00)
   if (!dateStr || typeof dateStr !== 'string') {
     throw new Error('Invalid date string');
