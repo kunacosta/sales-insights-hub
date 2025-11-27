@@ -184,6 +184,15 @@ const Dashboard = () => {
     return [...new Set(transactions.map(t => t.inv_desc))].sort();
   }, [transactions]);
 
+  // Get brand transaction counts
+  const brandCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    transactions.forEach(t => {
+      counts.set(t.inv_desc, (counts.get(t.inv_desc) || 0) + 1);
+    });
+    return counts;
+  }, [transactions]);
+
   if (transactions.length === 0) {
     return (
       <div className="min-h-screen bg-background p-8">
@@ -218,6 +227,7 @@ const Dashboard = () => {
         onOpenChange={setShowQualityDialog}
         inconsistencies={inconsistencies}
         availableBrands={availableBrands}
+        brandCounts={brandCounts}
         onFix={handleFixInconsistencies}
         onIgnoreAll={handleIgnoreAll}
       />
