@@ -23,13 +23,11 @@ import {
 import { detectBrandInconsistencies, applyBrandFixes, BrandInconsistency } from '@/utils/dataQuality';
 import { CustomMapping } from '@/components/DataQualityDialog';
 import { ProcessedTransaction, FilterState, DateRange } from '@/types/sales';
-import { BarChart3, Home } from 'lucide-react';
+import { BarChart3, Home, AlertTriangle } from 'lucide-react';
 
 const Dashboard = () => {
   const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
-  const [pendingTransactions, setPendingTransactions] = useState<ProcessedTransaction[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
-  const [pendingDateRange, setPendingDateRange] = useState<DateRange | null>(null);
   const [inconsistencies, setInconsistencies] = useState<BrandInconsistency[]>([]);
   const [showQualityDialog, setShowQualityDialog] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
@@ -49,22 +47,20 @@ const Dashboard = () => {
       const processedData = rawData.map(processTransaction);
       const detectedDateRange = detectDateRange(rawData);
       
-      // Detect brand inconsistencies
-      const detected = detectBrandInconsistencies(processedData);
+      // Load data first
+      setTransactions(processedData);
+      setDateRange(detectedDateRange);
       
+      // Detect brand inconsistencies in background
+      const detected = detectBrandInconsistencies(processedData);
+      setInconsistencies(detected);
+      
+      toast.dismiss();
       if (detected.length > 0) {
-        // Store pending data and show dialog
-        setPendingTransactions(processedData);
-        setPendingDateRange(detectedDateRange);
-        setInconsistencies(detected);
-        setShowQualityDialog(true);
-        toast.dismiss();
-        toast.info(`Found ${detected.length} brand name inconsistencies`);
+        toast.success(`Loaded ${processedData.length} transactions`, {
+          description: `Found ${detected.length} brand inconsistencies - click "Data Quality" to review`,
+        });
       } else {
-        // No inconsistencies, proceed directly
-        setTransactions(processedData);
-        setDateRange(detectedDateRange);
-        toast.dismiss();
         toast.success(`Successfully loaded ${processedData.length} transactions`);
       }
     } catch (error) {
@@ -94,29 +90,23 @@ const Dashboard = () => {
       fixes.set(mapping.fromBrand, mapping.toBrand);
     });
 
-    // Apply fixes to transactions
-    const fixedTransactions = applyBrandFixes(pendingTransactions, fixes);
-    
+    // Apply fixes to current transactions
+    const fixedTransactions = applyBrandFixes(transactions, fixes);
     setTransactions(fixedTransactions);
-    setDateRange(pendingDateRange);
+    
+    // Re-detect inconsistencies after fixing
+    const newInconsistencies = detectBrandInconsistencies(fixedTransactions);
+    setInconsistencies(newInconsistencies);
+    
     setShowQualityDialog(false);
-    setPendingTransactions([]);
-    setPendingDateRange(null);
-    setInconsistencies([]);
     
     const fixedCount = fixes.size;
-    toast.success(`Fixed ${fixedCount} brand names. Loaded ${fixedTransactions.length} transactions`);
+    toast.success(`Fixed ${fixedCount} brand names across ${fixedTransactions.length} transactions`);
   };
 
   const handleIgnoreAll = () => {
-    // Use original data without fixes
-    setTransactions(pendingTransactions);
-    setDateRange(pendingDateRange);
+    // Just close the dialog, data is already loaded
     setShowQualityDialog(false);
-    setPendingTransactions([]);
-    setPendingDateRange(null);
-    setInconsistencies([]);
-    toast.success(`Loaded ${pendingTransactions.length} transactions`);
   };
 
   // Filter data
@@ -191,43 +181,33 @@ const Dashboard = () => {
 
   // Get available brands for custom mapping suggestions
   const availableBrands = useMemo(() => {
-    return [...new Set(pendingTransactions.map(t => t.inv_desc))].sort();
-  }, [pendingTransactions]);
+    return [...new Set(transactions.map(t => t.inv_desc))].sort();
+  }, [transactions]);
 
   if (transactions.length === 0) {
     return (
-      <>
-        <DataQualityDialog
-          open={showQualityDialog}
-          onOpenChange={setShowQualityDialog}
-          inconsistencies={inconsistencies}
-          availableBrands={availableBrands}
-          onFix={handleFixInconsistencies}
-          onIgnoreAll={handleIgnoreAll}
-        />
-        <div className="min-h-screen bg-background p-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-4">
-              <Link to="/">
-                <Button variant="ghost" size="sm">
-                  <Home className="w-4 h-4 mr-2" />
-                  Back to Home
-                </Button>
-              </Link>
-            </div>
-            <div className="text-center mb-8">
-              <div className="flex items-center justify-center mb-4">
-                <BarChart3 className="w-12 h-12 text-primary" />
-              </div>
-              <h1 className="text-4xl font-bold mb-2">Counter Sales Analytics</h1>
-              <p className="text-muted-foreground">
-                Upload your CSV file to start analyzing your sales data
-              </p>
-            </div>
-            <CSVUploader onFileUpload={handleFileUpload} />
+      <div className="min-h-screen bg-background p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-4">
+            <Link to="/">
+              <Button variant="ghost" size="sm">
+                <Home className="w-4 h-4 mr-2" />
+                Back to Home
+              </Button>
+            </Link>
           </div>
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center mb-4">
+              <BarChart3 className="w-12 h-12 text-primary" />
+            </div>
+            <h1 className="text-4xl font-bold mb-2">Counter Sales Analytics</h1>
+            <p className="text-muted-foreground">
+              Upload your CSV file to start analyzing your sales data
+            </p>
+          </div>
+          <CSVUploader onFileUpload={handleFileUpload} />
         </div>
-      </>
+      </div>
     );
   }
 
@@ -254,8 +234,24 @@ const Dashboard = () => {
               <BarChart3 className="w-8 h-8 text-primary flex-shrink-0" />
               <h1 className="text-2xl sm:text-3xl font-bold">Counter Sales Analytics</h1>
             </div>
-            <div className="text-sm text-muted-foreground">
-              {filteredTransactions.length} of {transactions.length} transactions
+            <div className="flex items-center gap-4">
+              <Button
+                variant={inconsistencies.length > 0 ? "outline" : "ghost"}
+                size="sm"
+                onClick={() => setShowQualityDialog(true)}
+                className={inconsistencies.length > 0 ? "border-warning text-warning hover:bg-warning/10" : ""}
+              >
+                <AlertTriangle className={`w-4 h-4 mr-2 ${inconsistencies.length > 0 ? "text-warning" : ""}`} />
+                Data Quality
+                {inconsistencies.length > 0 && (
+                  <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-warning text-warning-foreground rounded-full">
+                    {inconsistencies.length}
+                  </span>
+                )}
+              </Button>
+              <div className="text-sm text-muted-foreground">
+                {filteredTransactions.length} of {transactions.length} transactions
+              </div>
             </div>
           </div>
           {dateRange && <DateRangeBadge dateRange={dateRange} />}
