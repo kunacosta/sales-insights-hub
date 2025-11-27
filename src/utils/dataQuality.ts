@@ -10,14 +10,20 @@ export interface BrandInconsistency {
   }[];
 }
 
-// Normalize string for comparison
+// Remove special characters that often cause inconsistencies
+const removeSpecialChars = (str: string): string => {
+  // Remove various quotes, apostrophes, backticks, and other special chars
+  return str.replace(/[`''""\u0060\u00B4\u2018\u2019\u201C\u201D]/g, '');
+};
+
+// Normalize string for comparison (keeps single spaces)
 const normalizeString = (str: string): string => {
-  return str.toLowerCase().trim().replace(/\s+/g, ' ').replace(/[`'"]/g, '');
+  return removeSpecialChars(str.toLowerCase().trim()).replace(/\s+/g, ' ');
 };
 
 // Normalize string without any spaces (for catching NAVI FORCE vs NAVIFORCE)
 const normalizeNoSpaces = (str: string): string => {
-  return str.toLowerCase().trim().replace(/\s+/g, '').replace(/[`'"]/g, '');
+  return removeSpecialChars(str.toLowerCase().trim()).replace(/\s+/g, '');
 };
 
 // Calculate Levenshtein distance between two strings
