@@ -45,6 +45,46 @@ const getMonth = (dateStr: string): string => {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
+export const detectDateRange = (transactions: SalesTransaction[]) => {
+  if (transactions.length === 0) {
+    return {
+      startDate: '',
+      endDate: '',
+      totalDays: 0,
+      isMonthly: false,
+      displayText: 'No data',
+    };
+  }
+
+  const dates = transactions
+    .map(t => parseDateString(t.trx_date))
+    .sort((a, b) => a.getTime() - b.getTime());
+  
+  const startDate = dates[0];
+  const endDate = dates[dates.length - 1];
+  const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Check if it's monthly data (all transactions within same month)
+  const isMonthly = startDate.getMonth() === endDate.getMonth() && 
+                    startDate.getFullYear() === endDate.getFullYear();
+  
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+  
+  const displayText = isMonthly
+    ? `${startDate.toLocaleDateString('en-MY', { month: 'long', year: 'numeric' })}`
+    : `${formatDate(startDate)} - ${formatDate(endDate)}`;
+  
+  return {
+    startDate: formatDate(startDate),
+    endDate: formatDate(endDate),
+    totalDays: totalDays + 1,
+    isMonthly,
+    displayText,
+  };
+};
+
 export const processTransaction = (transaction: SalesTransaction): ProcessedTransaction => {
   let revenue = transaction.trx_amt;
   let quantity = transaction.trx_qty;

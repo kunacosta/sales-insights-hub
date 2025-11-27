@@ -31,27 +31,42 @@ const BrandAnalytics = ({ brandData, modelData }: BrandAnalyticsProps) => {
           <CardTitle>Top 10 Brands by Revenue</CardTitle>
           <CardDescription>Best performing brands in the period</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={top10Brands} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--foreground))" tickFormatter={formatCurrency} />
-              <YAxis type="category" dataKey="brand" width={100} stroke="hsl(var(--foreground))" />
-              <Tooltip
-                formatter={(value: number) => formatCurrency(value)}
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-              />
-              <Bar dataKey="revenue" fill="hsl(var(--chart-1))" name="Revenue" />
-            </BarChart>
-          </ResponsiveContainer>
+        <CardContent className="px-2 sm:px-6">
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-[500px]">
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={top10Brands} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    type="number" 
+                    stroke="hsl(var(--foreground))" 
+                    tickFormatter={formatCurrency}
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="brand" 
+                    width={120} 
+                    stroke="hsl(var(--foreground))"
+                    fontSize={11}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => formatCurrency(value)}
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar dataKey="revenue" fill="hsl(var(--chart-1))" name="Revenue" radius={[0, 8, 8, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>Highest Return Rate Brands</CardTitle>

@@ -55,7 +55,7 @@ const KPICards = ({ metrics }: KPICardsProps) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
       {kpiData.map((kpi) => (
         <Card key={kpi.title} className="shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -65,7 +65,7 @@ const KPICards = ({ metrics }: KPICardsProps) => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
+            <div className={`text-xl sm:text-2xl font-bold ${kpi.color} break-words`}>{kpi.value}</div>
           </CardContent>
         </Card>
       ))}
