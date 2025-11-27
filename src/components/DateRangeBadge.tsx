@@ -7,6 +7,11 @@ interface DateRangeBadgeProps {
 }
 
 const DateRangeBadge = ({ dateRange }: DateRangeBadgeProps) => {
+  // Don't render if no valid date range
+  if (!dateRange.displayText || dateRange.displayText === 'No data' || dateRange.displayText === 'Invalid dates in data' || dateRange.displayText === 'Error detecting date range') {
+    return null;
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-3 bg-accent/50 rounded-lg p-4 border border-border">
       <div className="flex items-center gap-2">
