@@ -53,7 +53,7 @@ const FinancialTrends = ({ monthlyData, dayOfWeekData }: FinancialTrendsProps) =
                     }}
                   />
                   <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                  <Bar dataKey="revenue" fill="hsl(var(--revenue))" name="Revenue" />
+                  <Bar dataKey="revenue" fill="hsl(var(--revenue))" name="Revenue" maxBarSize={80} />
                   <Line type="monotone" dataKey="profit" stroke="hsl(var(--profit))" strokeWidth={2} name="Profit" />
                 </ComposedChart>
               </ResponsiveContainer>
@@ -92,7 +92,7 @@ const FinancialTrends = ({ monthlyData, dayOfWeekData }: FinancialTrendsProps) =
                       borderRadius: '8px',
                     }}
                   />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" name="Revenue" />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" name="Revenue" maxBarSize={60} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
