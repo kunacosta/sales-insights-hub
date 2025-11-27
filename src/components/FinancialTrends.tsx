@@ -32,54 +32,59 @@ const FinancialTrends = ({ monthlyData, dayOfWeekData }: FinancialTrendsProps) =
     const cogsPercent = revenue > 0 ? (cogs / revenue) * 100 : 0;
 
     return (
-      <div className="space-y-4">
-        <div className="text-center pb-4 border-b border-border">
-          <p className="text-sm text-muted-foreground mb-1">Period: {data.name}</p>
+      <div className="space-y-5">
+        <div className="text-center pb-4 border-b border-border/50">
+          <p className="text-sm font-medium text-foreground">{data.name}</p>
+          <p className="text-xs text-muted-foreground mt-1">Financial Summary</p>
         </div>
         
         <div className="grid grid-cols-1 gap-4">
           {/* Revenue */}
-          <div className="p-4 rounded-lg bg-revenue/10 border border-revenue/20">
-            <div className="flex items-center justify-between mb-2">
+          <div className="p-5 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-revenue" />
+                <div className="p-2 rounded-lg bg-primary/15">
+                  <DollarSign className="w-4 h-4 text-primary" />
+                </div>
                 <span className="text-sm font-medium text-muted-foreground">Total Revenue</span>
               </div>
             </div>
-            <p className="text-2xl font-bold text-revenue">{formatCurrency(revenue)}</p>
+            <p className="text-2xl font-bold text-primary">{formatCurrency(revenue)}</p>
           </div>
 
           {/* COGS */}
-          <div className="p-4 rounded-lg bg-muted">
-            <div className="flex items-center justify-between mb-2">
+          <div className="p-5 rounded-xl bg-gradient-to-br from-destructive/5 to-destructive/10 border border-destructive/20 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-muted-foreground">Cost of Goods Sold</span>
-              <span className="text-xs font-medium text-muted-foreground">{formatPercent(cogsPercent)} of revenue</span>
+              <span className="text-xs font-semibold text-destructive/80 bg-destructive/10 px-2 py-1 rounded-full">{formatPercent(cogsPercent)}</span>
             </div>
-            <p className="text-xl font-semibold text-foreground">{formatCurrency(cogs)}</p>
-            <div className="mt-2 h-2 bg-background rounded-full overflow-hidden">
+            <p className="text-xl font-bold text-destructive/90">{formatCurrency(cogs)}</p>
+            <div className="mt-3 h-2 bg-background/80 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-muted-foreground/40 transition-all duration-500"
+                className="h-full bg-gradient-to-r from-destructive/60 to-destructive/80 transition-all duration-500 rounded-full"
                 style={{ width: `${cogsPercent}%` }}
               />
             </div>
           </div>
 
           {/* Profit */}
-          <div className="p-4 rounded-lg bg-profit/10 border border-profit/20">
-            <div className="flex items-center justify-between mb-2">
+          <div className="p-5 rounded-xl bg-gradient-to-br from-profit/5 to-profit/15 border border-profit/25 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-profit" />
+                <div className="p-2 rounded-lg bg-profit/15">
+                  <TrendingUp className="w-4 h-4 text-profit" />
+                </div>
                 <span className="text-sm font-medium text-muted-foreground">Net Profit</span>
               </div>
-              <div className="flex items-center gap-1 text-profit">
-                <Percent className="w-4 h-4" />
-                <span className="text-sm font-semibold">{formatPercent(profitMargin)}</span>
+              <div className="flex items-center gap-1 text-profit bg-profit/10 px-2 py-1 rounded-full">
+                <Percent className="w-3 h-3" />
+                <span className="text-xs font-semibold">{formatPercent(profitMargin)}</span>
               </div>
             </div>
             <p className="text-2xl font-bold text-profit">{formatCurrency(profit)}</p>
-            <div className="mt-2 h-2 bg-background rounded-full overflow-hidden">
+            <div className="mt-3 h-2 bg-background/80 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-profit transition-all duration-500"
+                className="h-full bg-gradient-to-r from-profit/70 to-profit transition-all duration-500 rounded-full"
                 style={{ width: `${profitMargin}%` }}
               />
             </div>
@@ -87,17 +92,17 @@ const FinancialTrends = ({ monthlyData, dayOfWeekData }: FinancialTrendsProps) =
         </div>
 
         {/* Visual breakdown */}
-        <div className="pt-4 border-t border-border">
-          <p className="text-xs text-muted-foreground mb-2">Revenue Composition</p>
-          <div className="h-8 rounded-lg overflow-hidden flex">
+        <div className="pt-4 border-t border-border/50">
+          <p className="text-xs font-medium text-muted-foreground mb-3">Revenue Composition</p>
+          <div className="h-10 rounded-xl overflow-hidden flex shadow-inner bg-muted/30">
             <div 
-              className="bg-muted-foreground/40 flex items-center justify-center text-xs font-medium text-foreground transition-all duration-500"
+              className="bg-gradient-to-r from-destructive/50 to-destructive/70 flex items-center justify-center text-xs font-semibold text-destructive-foreground transition-all duration-500"
               style={{ width: `${cogsPercent}%` }}
             >
               {cogsPercent > 15 && 'COGS'}
             </div>
             <div 
-              className="bg-profit flex items-center justify-center text-xs font-medium text-background transition-all duration-500"
+              className="bg-gradient-to-r from-profit/80 to-profit flex items-center justify-center text-xs font-semibold text-profit-foreground transition-all duration-500"
               style={{ width: `${profitMargin}%` }}
             >
               {profitMargin > 15 && 'Profit'}
