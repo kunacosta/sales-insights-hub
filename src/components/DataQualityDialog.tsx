@@ -80,7 +80,7 @@ const DataQualityDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 -mx-6 px-6">
+        <ScrollArea className="flex-1 -mx-6 px-6 max-h-[50vh] overflow-y-auto">
           <div className="space-y-4 py-4">
             {inconsistencies.map((inconsistency) => {
               const badge = getTypeBadge(inconsistency.type);
