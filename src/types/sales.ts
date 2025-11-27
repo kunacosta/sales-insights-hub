@@ -40,6 +40,10 @@ export interface FilterState {
   outlet: string;
   brand: string;
   salesman: string;
+  dateFrom: Date | null;
+  dateTo: Date | null;
+  brandSort: 'best' | 'worst' | 'all';
+  productSort: 'best' | 'worst' | 'all';
 }
 
 export interface ChartDataPoint {
@@ -53,6 +57,8 @@ export interface BrandPerformance {
   brand: string;
   revenue: number;
   profit: number;
+  cogs: number;
+  profitMargin: number;
   returnRate: number;
   salesCount: number;
 }
